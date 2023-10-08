@@ -47,13 +47,13 @@ import java.util.Objects;
 @RestController
 @RequestMapping(Constants.HISTORY_CONTROLLER_PATH)
 public class HistoryController {
-    
+
     private final PersistService persistService;
-    
+
     public HistoryController(PersistService persistService) {
         this.persistService = persistService;
     }
-    
+
     /**
      * Query the list history config. notes:
      *
@@ -69,19 +69,14 @@ public class HistoryController {
      */
     @GetMapping(params = "search=accurate")
     @Secured(action = ActionTypes.READ, signType = SignType.CONFIG)
-    public Page<ConfigHistoryInfo> listConfigHistory(@RequestParam("dataId") String dataId,
-            @RequestParam("group") String group,
-            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant,
-            @RequestParam(value = "appName", required = false) String appName,
-            @RequestParam(value = "pageNo", required = false) Integer pageNo,
-            @RequestParam(value = "pageSize", required = false) Integer pageSize, ModelMap modelMap) {
+    public Page<ConfigHistoryInfo> listConfigHistory(@RequestParam("dataId") String dataId, @RequestParam("group") String group, @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant, @RequestParam(value = "appName", required = false) String appName, @RequestParam(value = "pageNo", required = false) Integer pageNo, @RequestParam(value = "pageSize", required = false) Integer pageSize, ModelMap modelMap) {
         pageNo = null == pageNo ? 1 : pageNo;
         pageSize = null == pageSize ? 100 : pageSize;
         pageSize = Math.min(500, pageSize);
         // configInfoBase has no appName field.
         return persistService.findConfigHistory(dataId, group, tenant, pageNo, pageSize);
     }
-    
+
     /**
      * Query the detailed configuration history information. notes:
      *
@@ -94,25 +89,21 @@ public class HistoryController {
      */
     @GetMapping
     @Secured(action = ActionTypes.READ, signType = SignType.CONFIG)
-    public ConfigHistoryInfo getConfigHistoryInfo(@RequestParam("dataId") String dataId,
-            @RequestParam("group") String group,
-            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant,
-            @RequestParam("nid") Long nid) throws AccessException {
+    public ConfigHistoryInfo getConfigHistoryInfo(@RequestParam("dataId") String dataId, @RequestParam("group") String group, @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant, @RequestParam("nid") Long nid) throws AccessException {
         ConfigHistoryInfo configHistoryInfo = persistService.detailConfigHistory(nid);
         if (Objects.isNull(configHistoryInfo)) {
             return null;
         }
         // check if history config match the input
         checkHistoryInfoPermission(configHistoryInfo, dataId, group, tenant);
-    
+
         String encryptedDataKey = configHistoryInfo.getEncryptedDataKey();
-        Pair<String, String> pair = EncryptionHandler.decryptHandler(dataId, encryptedDataKey,
-                configHistoryInfo.getContent());
+        Pair<String, String> pair = EncryptionHandler.decryptHandler(dataId, encryptedDataKey, configHistoryInfo.getContent());
         configHistoryInfo.setContent(pair.getSecond());
-        
+
         return configHistoryInfo;
     }
-    
+
     /**
      * Check if the input dataId,group and tenant match the history config.
      *
@@ -123,21 +114,16 @@ public class HistoryController {
      * @throws AccessException not match exception.
      * @since 2.0.3
      */
-    private void checkHistoryInfoPermission(ConfigHistoryInfo configHistoryInfo, String dataId, String group,
-            String tenant) throws AccessException {
-        if (!Objects.equals(configHistoryInfo.getDataId(), dataId)
-                || !Objects.equals(configHistoryInfo.getGroup(), group)
-                || !Objects.equals(configHistoryInfo.getTenant(), tenant)
-              ) {
-            if (com.alibaba.nacos.api.common.Constants.DEFAULT_NAMESPACE_ID.equals(configHistoryInfo.getTenant()) &&
-                    "".equals(tenant)) {
+    private void checkHistoryInfoPermission(ConfigHistoryInfo configHistoryInfo, String dataId, String group, String tenant) throws AccessException {
+        if (!Objects.equals(configHistoryInfo.getDataId(), dataId) || !Objects.equals(configHistoryInfo.getGroup(), group) || !Objects.equals(configHistoryInfo.getTenant(), tenant)) {
+            if (com.alibaba.nacos.api.common.Constants.DEFAULT_NAMESPACE_ID.equals(configHistoryInfo.getTenant()) && "".equals(tenant)) {
             } else {
                 throw new AccessException("Please check dataId, group or tenant.");
             }
 
         }
     }
-    
+
     /**
      * Query previous config history information. notes:
      *
@@ -151,10 +137,7 @@ public class HistoryController {
      */
     @GetMapping(value = "/previous")
     @Secured(action = ActionTypes.READ, signType = SignType.CONFIG)
-    public ConfigHistoryInfo getPreviousConfigHistoryInfo(@RequestParam("dataId") String dataId,
-            @RequestParam("group") String group,
-            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant,
-            @RequestParam("id") Long id) throws AccessException {
+    public ConfigHistoryInfo getPreviousConfigHistoryInfo(@RequestParam("dataId") String dataId, @RequestParam("group") String group, @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant, @RequestParam("id") Long id) throws AccessException {
         ConfigHistoryInfo configHistoryInfo = persistService.detailPreviousConfigHistory(id);
         if (Objects.isNull(configHistoryInfo)) {
             return null;
@@ -163,7 +146,7 @@ public class HistoryController {
         checkHistoryInfoPermission(configHistoryInfo, dataId, group, tenant);
         return configHistoryInfo;
     }
-    
+
     /**
      * Query configs list by namespace.
      *
@@ -179,5 +162,5 @@ public class HistoryController {
         tenant = NamespaceUtil.processNamespaceParameter(tenant);
         return persistService.queryConfigInfoByNamespace(tenant);
     }
-    
+
 }
