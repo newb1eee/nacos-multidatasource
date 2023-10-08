@@ -93,6 +93,7 @@ else
     JAVA_OPT="${JAVA_OPT} -server -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
     JAVA_OPT="${JAVA_OPT} -XX:-OmitStackTraceInFastThrow -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${BASE_DIR}/logs/java_heapdump.hprof"
     JAVA_OPT="${JAVA_OPT} -XX:-UseLargePages"
+    JAVA_OPT="${JAVA_OPT} -Dnacos.standalone=true"
 
 fi
 
@@ -129,7 +130,7 @@ echo "$JAVA $JAVA_OPT_EXT_FIX ${JAVA_OPT}"
 if [[ "${MODE}" == "standalone" ]]; then
     echo "nacos is starting with standalone"
 else
-    echo "nacos is starting with cluster"
+    echo "nacos is starting with standalone"
 fi
 
 # check the start.out log output file
